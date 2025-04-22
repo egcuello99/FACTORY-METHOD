@@ -18,10 +18,18 @@ public class PushNotification implements Notification {
         this.priority = builder.priority;
     }
 
-    @Override
-    public void send() {
-        System.out.println("Enviando notificación PUSH a dispositivo: " + deviceToken);
-        // Implementación real del envío
+    public boolean send() {
+        try {
+            // Simular envío real
+            
+            if (deviceToken == null || deviceToken.isEmpty()) {
+                throw new IllegalArgumentException("Devise token inválido");
+            }
+            
+            return true; // Envío exitoso
+        } catch (Exception e) {
+            return false; // Envío fallido
+        }
     }
 
     public static class Builder {

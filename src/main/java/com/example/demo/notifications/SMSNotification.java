@@ -19,9 +19,18 @@ public class SMSNotification implements Notification {
     }
 
     @Override
-    public void send() {
-        System.out.println("Enviando SMS a: " + phoneNumber);
-        // Implementación real del envío
+    public boolean send() {
+        try {
+            // Simular envío real
+            
+            if (phoneNumber == null || phoneNumber.isEmpty()) {
+                throw new IllegalArgumentException("Número de teléfono inválido");
+            }
+            
+            return true; // Envío exitoso
+        } catch (Exception e) {
+            return false; // Envío fallido
+        }
     }
 
     public static class Builder {

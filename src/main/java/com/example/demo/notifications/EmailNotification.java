@@ -22,10 +22,18 @@ public class EmailNotification implements Notification {
     }
 
     @Override
-    public void send() {
-        System.out.println("Enviando email a: " + to);
-        System.out.println("Asunto: " + subject);
-        // Implementación real del envío
+    public boolean send() {
+        try {
+            // Simular envío real
+            
+            if (to == null || to.isEmpty()) {
+                throw new IllegalArgumentException("Dirección de email inválida");
+            }
+            
+            return true; // Envío exitoso
+        } catch (Exception e) {
+            return false; // Envío fallido
+        }
     }
 
     public static class Builder {
