@@ -1,5 +1,6 @@
-package com.example.demo.controllers;
 
+package com.example.demo.controllers;
+import com.example.demo.model.PagoRequest;
 import com.example.demo.PDFReport.PDFReport;
 import com.example.demo.PDFReport.Theme;
 import com.example.demo.factory.*;
@@ -15,7 +16,10 @@ import org.springframework.web.bind.annotation.*;
 public class PaymentController {
 
     @PostMapping
-    public Map<String, Object> procesarPago(@RequestParam String metodo, @RequestParam double monto) {
+    public Map<String, Object> procesarPago(@RequestBody PagoRequest pagoRequest) {
+        String metodo = pagoRequest.getMetodo();
+        double monto = pagoRequest.getMonto();
+
         PaymentFactory factory;
         Map<String, Object> response = new LinkedHashMap<>();
 
@@ -32,7 +36,7 @@ public class PaymentController {
         }
 
         Payment payment = factory.createPayment();
-        payment.process(monto); // Si devuelve void
+        payment.process(monto);
         response.put("pago", "Pago procesado con " + metodo + ", monto: " + monto);
 
         PDFReport customReport = new PDFReport.Builder()
@@ -43,7 +47,7 @@ public class PaymentController {
                 .includePaymentDetails(true)
                 .includeUserInfo(true)
                 .build();
-        customReport.generate(); // Si devuelve void
+        customReport.generate();
         response.put("reporte", "Reporte PDF generado exitosamente");
         return response;
     }

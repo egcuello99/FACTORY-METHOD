@@ -1,6 +1,10 @@
 package com.example.demo.controllers;
 
+import com.example.demo.model.EmailNotificationRequest;
 import com.example.demo.model.Notification;
+import com.example.demo.model.PushNotificationRequest;
+import com.example.demo.model.SmsRequest;
+import com.example.demo.model.WhatsAppRequest;
 import com.example.demo.notifications.*;
 import org.springframework.web.bind.annotation.*;
 import java.util.*;
@@ -10,32 +14,33 @@ import java.util.*;
 public class NotificationController {
 
     @PostMapping("/email")
-    public Map<String, Object> enviarEmail(
-            @RequestParam String to,
-            @RequestParam String subject,
-            @RequestParam String body,
-            @RequestParam(required = false) List<String> cc,
-            @RequestParam(required = false) List<String> bcc,
-            @RequestParam(required = false) String priority) {
+    public Map<String, Object> enviarEmail(@RequestBody EmailNotificationRequest request) {
 
-        EmailNotification.Builder builder = new EmailNotification.Builder(to, subject, body);
+        EmailNotification.Builder builder = new EmailNotification.Builder(
+                request.getTo(),
+                request.getSubject(),
+                request.getBody());
 
-        if (cc != null)
-            builder.cc(cc);
-        if (bcc != null)
-            builder.bcc(bcc);
-        if (priority != null)
-            builder.priority(priority);
+        if (request.getCc() != null)
+            builder.cc(request.getCc());
+        if (request.getBcc() != null)
+            builder.bcc(request.getBcc());
+        if (request.getPriority() != null)
+            builder.priority(request.getPriority());
 
         return enviarNotificacion(builder.build());
     }
 
     @PostMapping("/sms")
-    public Map<String, Object> enviarSMS(
-            @RequestParam String phoneNumber,
-            @RequestParam String message,
-            @RequestParam(required = false) String senderId,
-            @RequestParam(required = false) Boolean deliveryReportRequired) {
+    public Map<String, Object> enviarSMS(@RequestBody SmsRequest request) {
+        String phoneNumber = request.getPhoneNumber();
+        String message = request.getMessage();
+        String senderId = request.getSenderId();
+        Boolean deliveryReportRequired = request.getDeliveryReportRequired();
+
+        if (phoneNumber == null || !phoneNumber.matches("\\+\\d+")) {
+            throw new IllegalArgumentException("Número de teléfono inválido");
+        }
 
         SMSNotification.Builder builder = new SMSNotification.Builder(phoneNumber, message);
 
@@ -48,29 +53,28 @@ public class NotificationController {
     }
 
     @PostMapping("/push")
-    public Map<String, Object> enviarPush(
-            @RequestParam String deviceToken,
-            @RequestParam String title,
-            @RequestParam String message,
-            @RequestParam(required = false) String imageUrl,
-            @RequestParam(required = false) String priority) {
+    public Map<String, Object> enviarPush(@RequestBody PushNotificationRequest request) {
 
-        PushNotification.Builder builder = new PushNotification.Builder(deviceToken, title, message);
+        PushNotification.Builder builder = new PushNotification.Builder(
+                request.getDeviceToken(),
+                request.getTitle(),
+                request.getMessage());
 
-        if (imageUrl != null)
-            builder.imageUrl(imageUrl);
-        if (priority != null)
-            builder.priority(priority);
+        if (request.getImageUrl() != null)
+            builder.imageUrl(request.getImageUrl());
+        if (request.getPriority() != null)
+            builder.priority(request.getPriority());
 
         return enviarNotificacion(builder.build());
     }
 
     @PostMapping("/whatsapp")
-    public Map<String, Object> enviarWhatsApp(
-            @RequestParam String phoneNumber,
-            @RequestParam String message,
-            @RequestParam(required = false) String mediaUrl,
-            @RequestParam(required = false) String caption) {
+    public Map<String, Object> enviarWhatsApp(@RequestBody WhatsAppRequest request) {
+
+        String phoneNumber = request.getPhoneNumber();
+        String message = request.getMessage();
+        String mediaUrl = request.getMediaUrl();
+        String caption = request.getCaption();
 
         if (phoneNumber == null || !phoneNumber.matches("\\+\\d+")) {
             throw new IllegalArgumentException("Número de teléfono inválido");
@@ -88,13 +92,13 @@ public class NotificationController {
 
     private Map<String, Object> enviarNotificacion(Notification notification) {
         Map<String, Object> response = new LinkedHashMap<>();
-        
+
         try {
             boolean enviado = notification.send();
             response.put("status", enviado ? "success" : "failed");
             response.put("sent", enviado);
             response.put("notificationType", notification.getClass().getSimpleName());
-            
+
             if (!enviado) {
                 response.put("message", "Error al enviar la notificación");
             }
@@ -103,7 +107,7 @@ public class NotificationController {
             response.put("message", e.getMessage());
             response.put("sent", false);
         }
-        
+
         return response;
     }
 }
